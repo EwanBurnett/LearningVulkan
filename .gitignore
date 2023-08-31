@@ -1,0 +1,8 @@
+# Ignore any build files
+build/
+
+# Ignore dependencies
+glfw/
+
+
+
