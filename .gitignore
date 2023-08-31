@@ -1,5 +1,6 @@
 # Ignore any build files
 build/
+.cache/
 
 # Ignore dependencies
 glfw/
