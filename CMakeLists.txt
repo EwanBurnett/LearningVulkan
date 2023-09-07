@@ -13,7 +13,7 @@ project("VKDemo")
 
 find_package(Vulkan REQUIRED)
 
-add_executable(${PROJECT_NAME} main.cpp Renderer.h Renderer.cpp Helpers.h Helpers.cpp)
+add_executable(${PROJECT_NAME} main.cpp Helpers.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES} glfw)
 

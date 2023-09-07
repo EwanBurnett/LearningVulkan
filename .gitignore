@@ -1,6 +1,12 @@
 # Ignore any build files
-build/
+[Bb][Uu][Ii][Ll][Dd]/
 .cache/
+.vs/
+[Oo][Uu][Tt]/
+
+*.swp
+*.swo
+
 
 # Ignore dependencies
 glfw/
