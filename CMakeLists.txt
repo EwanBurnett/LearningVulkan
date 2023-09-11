@@ -9,12 +9,21 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
-project("VKDemo")
+project("Common")
 
 find_package(Vulkan REQUIRED)
 
-add_executable(${PROJECT_NAME} main.cpp Helpers.cpp)
+add_library(${PROJECT_NAME} src/Helpers.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES} glfw)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+
+add_subdirectory("Examples")
+
+add_custom_target(CompileShader
+    TARGET "Common" POST_BUILD
+    COMMENT "Compiling Shaders"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMAND ./CompileShaders.sh
+)

@@ -7,6 +7,8 @@
 *.swp
 *.swo
 
+*.vert
+*.frag
 
 # Ignore dependencies
 glfw/

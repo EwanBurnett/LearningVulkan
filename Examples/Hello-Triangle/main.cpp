@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "Helpers.h"
+#include <Helpers.h>
 
 
 void RecordCommandBuffer(VkCommandBuffer buffer, uint32_t imgIdx, const VkRenderPass& pass) {
@@ -18,7 +18,7 @@ int main()
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        auto window = glfwCreateWindow(800, 600, "Hello Triangle", nullptr, nullptr);
+        auto window = glfwCreateWindow(600, 400, "Hello Triangle", nullptr, nullptr);
 
         glfwHideWindow(window);
         
