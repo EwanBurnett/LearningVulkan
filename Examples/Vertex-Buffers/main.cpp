@@ -21,6 +21,7 @@ int main()
 
     //Create the Renderer
     Renderer renderer(window);
+    renderer.InitData();
 
     //Render Loop
     while(!window.ShouldClose())
@@ -31,6 +32,9 @@ int main()
         //Update
 
         //Render
+        renderer.BeginFrame();
+        renderer.Draw();
+        renderer.EndFrame();
     }
     
     window.Hide();  //Hide the window before cleaning up. 
