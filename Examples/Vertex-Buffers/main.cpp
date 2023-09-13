@@ -1,5 +1,6 @@
 #include <Utilities.h>
 #include "Window.h"
+#include "Renderer.h"
 
 const char* windowTitle = "Vertex Buffers Demo";
 const uint32_t defaultWidth = 600;
@@ -19,7 +20,7 @@ int main()
     window.Show(); 
 
     //Create the Renderer
-
+    Renderer renderer(window);
 
     //Render Loop
     while(!window.ShouldClose())
