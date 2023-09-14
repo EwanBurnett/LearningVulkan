@@ -120,16 +120,49 @@ inline void Log::_Output(ELogColour colour, FILE * stream, const char* fmt, va_l
 #ifdef _WIN32
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, (WORD)colour);
-#elif defined _LINUX
-   // fprintf(stream, "\033["); //TODO: Evaluate different colour codes. 
+#else //Assume the program is running on linux
+    switch(colour){
+        case ELogColour::RED:
+            fprintf(stream, "\033[31m");
+            break;
+
+        case ELogColour::GREEN:
+            fprintf(stream, "\033[32m");
+            break;
+            
+
+        case ELogColour::YELLOW:
+        case ELogColour::BROWN:
+            fprintf(stream, "\033[33m");
+            break;
+            
+
+        case ELogColour::BLUE:
+            fprintf(stream, "\033[34m");
+            break;
+            
+
+        case ELogColour::CYAN:
+            fprintf(stream, "\033[36m");
+            break;
+            
+
+        case ELogColour::WHITE:
+            fprintf(stream, "\033[37m");
+            break;
+            
+        default:
+            fprintf(stream, "\033[35m");
+            break;
+    }
 #endif
 
     vfprintf(stream, fmt, args);
     //Reset the output colour
 #ifdef _WIN32
     SetConsoleTextAttribute(hConsole, (WORD)ELogColour::WHITE);
-#elif defined _LINUX
-   // fprintf(stream, "\033["); //TODO: Evaluate different colour codes. 
+#else
+    fprintf(stream, "\033[0m"); 
 #endif
 }
 
