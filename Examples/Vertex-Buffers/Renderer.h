@@ -28,12 +28,14 @@ class Renderer
         VkSwapchainKHR m_Swapchain;
 
         std::vector<VkImageView> m_ImageViews;
+        VkCommandPool m_CommandPool; 
 
 #ifdef DEBUG
         VkDebugUtilsMessengerEXT m_DebugLogger;
 #endif
 
         std::vector<std::pair<size_t, VkQueue>> m_GraphicsQueues;
+        std::vector<std::pair<size_t, VkQueue>> m_PresentationQueues;
         
         std::vector<VkImageView> m_SwapchainImages;
         VkSurfaceFormatKHR m_SwapchainFormat; 

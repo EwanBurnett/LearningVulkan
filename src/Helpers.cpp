@@ -112,11 +112,12 @@ VkInstance Helpers::CreateInstance(const char* const appName, const uint32_t app
     
     //Validate each Layer and Extension
 
+    if(pInstanceLayers){
     bool layersValid = Helpers::ValidateArrayInstanceLayerSupport(pInstanceLayers, numInstanceLayers);
     if (!layersValid) {
         throw std::runtime_error("Not all Instance Layers were supported!");
     }
-
+    }
     bool extensionsValid = Helpers::ValidateArrayInstanceExtensionSupport(pInstanceExtensions, numInstanceExtensions);
     if (!extensionsValid) {
         throw std::runtime_error("Not all Instance Extensions were supported!");
