@@ -1,6 +1,7 @@
 #include <Utilities.h>
 #include "Window.h"
 #include "Renderer.h"
+#include <chrono>
 
 const char* windowTitle = "Vertex Buffers Demo";
 const uint32_t defaultWidth = 600;
@@ -23,9 +24,12 @@ int main()
     Renderer renderer(window);
     renderer.InitData();
 
+    float deltaTime = 0.0f;
+
     //Render Loop
     while(!window.ShouldClose())
     {
+        auto startTime = std::chrono::high_resolution_clock::now();
         //Poll Events
         glfwPollEvents(); 
 
@@ -35,6 +39,11 @@ int main()
         renderer.BeginFrame();
         renderer.Draw();
         renderer.EndFrame();
+
+        auto endTime = std::chrono::high_resolution_clock::now();
+        deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        //Poll Events
+        printf("\rDelta Time: %fms", deltaTime);
     }
     
     window.Hide();  //Hide the window before cleaning up. 
