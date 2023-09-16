@@ -43,7 +43,7 @@ int main()
         auto endTime = std::chrono::high_resolution_clock::now();
         deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
         //Poll Events
-        printf("\rDelta Time: %fms", deltaTime);
+        printf("\rDelta Time: %05.6fms", deltaTime);
     }
     
     window.Hide();  //Hide the window before cleaning up. 

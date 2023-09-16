@@ -10,44 +10,29 @@
 
 //Vertex Buffer Specific 
 std::vector<Vertex> g_Vertices = {
+    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
     {{0.0f, -0.7f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
     {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-
-    {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.7f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-
     {{0.7f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
     {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-    
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.7f, 0.0f}, {0.0f, 1.0f, 1.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-
     {{0.0f, 0.7f, 0.0f}, {0.0f, 1.0f, 1.0f, 1.0f}},
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-
-    {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-    {{-0.7f, 0.0f, 0.0f}, {1.0f, 0.0f, 1.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-    
     {{-0.7f, 0.0f, 0.0f}, {1.0f, 0.0f, 1.0f, 1.0f}},
     {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
+};
 
-    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.0f, -0.7f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
+std::vector<uint32_t> g_Indices = {
+    0, 1, 2, 
+    1, 3, 2,
+    2, 3, 4,
+    3, 4, 2,
 };
 
 VkBuffer g_VertexBuffer = {};
 VkDeviceMemory g_DeviceMemory = {};
 
-VkBuffer g_StagingBuffer = {};
-VkDeviceMemory g_StagingMemory = {};
+VkBuffer g_IndexBuffer = {};
+VkDeviceMemory g_IndexBufferMemory = {};
 
 VkCommandBuffer g_CommandBuffer = {};
 
@@ -186,6 +171,8 @@ Renderer::~Renderer(){
     Helpers::DestroySyncFence(m_Device, g_Fence);
     Helpers::DestroyCommandBuffer(m_Device, m_CommandPool, 1, &g_CommandBuffer);
     Helpers::DestroyCommandPool(m_Device, m_CommandPool);
+    vkDestroyBuffer(m_Device, g_IndexBuffer, nullptr);
+    vkFreeMemory(m_Device, g_IndexBufferMemory, nullptr);
     vkDestroyBuffer(m_Device, g_VertexBuffer, nullptr);
     vkFreeMemory(m_Device, g_DeviceMemory, nullptr);
     for(auto& buffer : m_FrameBuffers){
@@ -436,36 +423,87 @@ void Renderer::InitData(){
         stagingCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
         stagingCreateInfo.flags = 0; 
             
-        vkCreateBuffer(m_Device, &stagingCreateInfo, nullptr, &g_StagingBuffer);
+        VkBuffer stagingBuffer = {};
+        VkDeviceMemory stagingMemory = {};
+        vkCreateBuffer(m_Device, &stagingCreateInfo, nullptr, &stagingBuffer);
             allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memRequirements.memoryTypeBits);
 
-            vkAllocateMemory(m_Device, &allocInfo, nullptr, &g_StagingMemory);
-            vkBindBufferMemory(m_Device, g_StagingBuffer, g_StagingMemory, 0);
+            vkAllocateMemory(m_Device, &allocInfo, nullptr, &stagingMemory);
+            vkBindBufferMemory(m_Device, stagingBuffer, stagingMemory, 0);
             
             //Map the Vertex data into the staging buffer
             {
                 void* pData = nullptr;
-                vkMapMemory(m_Device, g_StagingMemory, 0, bufferCreateInfo.size, 0, &pData);
+                vkMapMemory(m_Device, stagingMemory, 0, bufferCreateInfo.size, 0, &pData);
                 memcpy(pData, g_Vertices.data(), (size_t)bufferCreateInfo.size);
-                vkUnmapMemory(m_Device, g_StagingMemory);
+                vkUnmapMemory(m_Device, stagingMemory);
+            }
+         VkBufferCreateInfo indexBufferCreateInfo = {};
+ indexBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        indexBufferCreateInfo.pNext = nullptr;
+        indexBufferCreateInfo.size = sizeof(g_Indices[0]) * g_Indices.size();
+        indexBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT; 
+        indexBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
+        indexBufferCreateInfo.flags = 0; 
+
+        vkCreateBuffer(m_Device, &indexBufferCreateInfo, nullptr, &g_IndexBuffer);
+        vkGetBufferMemoryRequirements(m_Device, g_IndexBuffer, &memRequirements);
+        allocInfo.allocationSize = memRequirements.size; 
+            allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memRequirements.memoryTypeBits);
+        vkAllocateMemory(m_Device, &allocInfo, nullptr, &g_IndexBufferMemory);
+        vkBindBufferMemory(m_Device, g_IndexBuffer, g_IndexBufferMemory, 0);
+
+ 
+
+         VkBufferCreateInfo indexStagingCreateInfo = {};
+        indexStagingCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        indexStagingCreateInfo.pNext = nullptr;
+        indexStagingCreateInfo.size = sizeof(g_Indices[0]) * g_Indices.size();
+        indexStagingCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; 
+        indexStagingCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
+        indexStagingCreateInfo.flags = 0; 
+ 
+        VkBuffer indexStagingBuffer = {};
+        VkDeviceMemory indexStagingMemory = {};
+
+       vkCreateBuffer(m_Device, &indexStagingCreateInfo, nullptr, &indexStagingBuffer);
+
+            allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memRequirements.memoryTypeBits);
+            vkAllocateMemory(m_Device, &allocInfo, nullptr, &indexStagingMemory);
+            vkBindBufferMemory(m_Device, indexStagingBuffer, indexStagingMemory, 0);
+            
+            //Map the Vertex data into the indexStaging buffer
+            {
+                void* pData = nullptr;
+                vkMapMemory(m_Device, indexStagingMemory, 0, indexStagingCreateInfo.size, 0, &pData);
+                memcpy(pData, g_Indices.data(), (size_t)bufferCreateInfo.size);
+                vkUnmapMemory(m_Device, indexStagingMemory);
             }
 
+
             //Copy the Staging Buffer into the Vertex Buffer
-            VkBufferCopy copy = {};
-            copy.srcOffset = 0;
-            copy.dstOffset = 0;
-            copy.size = bufferCreateInfo.size;
+            VkBufferCopy copyVertexBuffer = {};
+            copyVertexBuffer.srcOffset = 0;
+            copyVertexBuffer.dstOffset = 0;
+            copyVertexBuffer.size = bufferCreateInfo.size;
+     
+            VkBufferCopy copyIndexBuffer = {};
+            copyIndexBuffer.srcOffset = 0;
+            copyIndexBuffer.dstOffset = 0;
+            copyIndexBuffer.size = indexStagingCreateInfo.size;
+
 
             VkCommandBuffer cmdBuffer = Helpers::CreateCommandBuffer(m_Device, m_CommandPool);
 
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
-            beginInfo.flags = 0;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             beginInfo.pInheritanceInfo = nullptr; 
 
             vkBeginCommandBuffer(cmdBuffer, &beginInfo);
-            vkCmdCopyBuffer(cmdBuffer, g_StagingBuffer, g_VertexBuffer, 1, &copy);
+            vkCmdCopyBuffer(cmdBuffer, stagingBuffer, g_VertexBuffer, 1, &copyVertexBuffer);
+            vkCmdCopyBuffer(cmdBuffer, indexStagingBuffer, g_IndexBuffer, 1, &copyIndexBuffer);
             vkEndCommandBuffer(cmdBuffer);
             
             VkSubmitInfo submitInfo = {};
@@ -477,8 +515,10 @@ void Renderer::InitData(){
             vkQueueSubmit(m_GraphicsQueues[0].second, 1, &submitInfo, VK_NULL_HANDLE);
 
 
-            vkDestroyBuffer(m_Device, g_StagingBuffer, nullptr);
-            vkFreeMemory(m_Device, g_StagingMemory, nullptr);
+            vkDestroyBuffer(m_Device, indexStagingBuffer, nullptr);
+            vkFreeMemory(m_Device, indexStagingMemory, nullptr);
+            vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+            vkFreeMemory(m_Device, stagingMemory, nullptr);
         }
 
     }
@@ -574,6 +614,8 @@ void Renderer::Draw(){
 
     VkDeviceSize offset[] = {0};
     vkCmdBindVertexBuffers(g_CommandBuffer, 0, 1, &g_VertexBuffer, offset);
-    vkCmdDraw(g_CommandBuffer, static_cast<uint32_t>(g_Vertices.size()), 1, 0, 0);
+    //vkCmdDraw(g_CommandBuffer, static_cast<uint32_t>(g_Vertices.size()), 1, 0, 0);
+    vkCmdBindIndexBuffer(g_CommandBuffer, g_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(g_CommandBuffer, g_Indices.size(), 1, 0, 0, 0);
 }
 
