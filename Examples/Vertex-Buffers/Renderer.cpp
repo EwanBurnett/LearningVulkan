@@ -8,24 +8,44 @@
 #include <vector> 
 #include <stdexcept>
 
+glm::mat4x4 g_WVP = {};
+
 //Vertex Buffer Specific 
 std::vector<Vertex> g_Vertices = {
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.0f, -0.7f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-    {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-    {{0.7f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-    {{0.0f, 0.7f, 0.0f}, {0.0f, 1.0f, 1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
-    {{-0.7f, 0.0f, 0.0f}, {1.0f, 0.0f, 1.0f, 1.0f}},
-    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}},
+    {{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+    {{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f}},
+    {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 1.0f, 1.0f}},
+    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}},
 };
 
 std::vector<uint32_t> g_Indices = {
-    0, 1, 2, 
-    1, 3, 2,
-    2, 3, 4,
-    3, 4, 2,
+         //Top
+        2, 6, 7,
+        2, 3, 7,
+
+        //Bottom
+        0, 4, 5,
+        0, 1, 5,
+
+        //Left
+        0, 2, 6,
+        0, 4, 6,
+
+        //Right
+        1, 3, 7,
+        1, 5, 7,
+
+        //Front
+        0, 2, 3,
+        0, 1, 3,
+
+        //Back
+        4, 6, 7,
+        4, 5, 7
 };
 
 VkBuffer g_VertexBuffer = {};
@@ -212,8 +232,27 @@ void Renderer::InitData(){
 
     m_ShaderModules.push_back(vertexShaderModule);
     m_ShaderModules.push_back(fragmentShaderModule);
+    
+    VkPushConstantRange pushConstant{};
+    pushConstant.offset = 0; 
+    pushConstant.size = sizeof(glm::mat4x4);
+    pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-    m_PipelineLayout = Helpers::CreatePipelineLayout(m_Device);
+    {
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0;
+    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstant;
+
+
+    auto res = VK_CALL(vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout));
+    if (res != VK_SUCCESS) {
+        throw std::runtime_error("Unable to create Pipeline layout");
+    }
+
+}
 
     //m_Pipeline = Helpers::CreateGraphicsPipeline(m_Device, vertexShaderModule, fragmentShaderModule, m_SwapchainExtents, m_PipelineLayout, m_RenderPass);
     //Create the Pipeline
@@ -364,19 +403,9 @@ void Renderer::InitData(){
 
     //Create the Vertex Buffer
     {
-        
-        VkBufferCreateInfo bufferCreateInfo = {};
-        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferCreateInfo.pNext = nullptr;
-        bufferCreateInfo.size = sizeof(g_Vertices[0]) * g_Vertices.size();
-        bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT; 
-        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
-        bufferCreateInfo.flags = 0; 
+        const size_t vertexBufferSize = sizeof(g_Vertices[0]) * g_Vertices.size();
+        g_VertexBuffer = Helpers::CreateBuffer(m_Device, vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_SHARING_MODE_EXCLUSIVE);
 
-        if(vkCreateBuffer(m_Device, &bufferCreateInfo, nullptr, &g_VertexBuffer) != VK_SUCCESS){
-            throw std::runtime_error("Failed to create Vertex Buffer!\n");
-        }
-   
         //Get the Memory Requirements of the Buffer, and allocate on the device
         {
             VkMemoryRequirements memRequirements = {};
@@ -413,19 +442,11 @@ void Renderer::InitData(){
             //Back the Vertex Buffer with memory
             vkBindBufferMemory(m_Device, g_VertexBuffer, g_DeviceMemory, 0);
 
-         
-        //Allocate the Staging Buffer
-        VkBufferCreateInfo stagingCreateInfo = {};
-        stagingCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        stagingCreateInfo.pNext = nullptr;
-        stagingCreateInfo.size = sizeof(g_Vertices[0]) * g_Vertices.size();
-        stagingCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; 
-        stagingCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
-        stagingCreateInfo.flags = 0; 
-            
-        VkBuffer stagingBuffer = {};
-        VkDeviceMemory stagingMemory = {};
-        vkCreateBuffer(m_Device, &stagingCreateInfo, nullptr, &stagingBuffer);
+             
+            //Allocate the Staging Buffer
+            VkBuffer stagingBuffer = Helpers::CreateBuffer(m_Device, vertexBufferSize,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_SHARING_MODE_EXCLUSIVE);
+            VkDeviceMemory stagingMemory = {};
+        
             allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, memRequirements.memoryTypeBits);
 
             vkAllocateMemory(m_Device, &allocInfo, nullptr, &stagingMemory);
@@ -434,39 +455,24 @@ void Renderer::InitData(){
             //Map the Vertex data into the staging buffer
             {
                 void* pData = nullptr;
-                vkMapMemory(m_Device, stagingMemory, 0, bufferCreateInfo.size, 0, &pData);
-                memcpy(pData, g_Vertices.data(), (size_t)bufferCreateInfo.size);
+                vkMapMemory(m_Device, stagingMemory, 0, vertexBufferSize, 0, &pData);
+                memcpy(pData, g_Vertices.data(), vertexBufferSize);
                 vkUnmapMemory(m_Device, stagingMemory);
             }
-         VkBufferCreateInfo indexBufferCreateInfo = {};
- indexBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        indexBufferCreateInfo.pNext = nullptr;
-        indexBufferCreateInfo.size = sizeof(g_Indices[0]) * g_Indices.size();
-        indexBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT; 
-        indexBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
-        indexBufferCreateInfo.flags = 0; 
 
-        vkCreateBuffer(m_Device, &indexBufferCreateInfo, nullptr, &g_IndexBuffer);
-        vkGetBufferMemoryRequirements(m_Device, g_IndexBuffer, &memRequirements);
-        allocInfo.allocationSize = memRequirements.size; 
-            allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memRequirements.memoryTypeBits);
-        vkAllocateMemory(m_Device, &allocInfo, nullptr, &g_IndexBufferMemory);
-        vkBindBufferMemory(m_Device, g_IndexBuffer, g_IndexBufferMemory, 0);
+            //Create the Index Buffer
+            const size_t indexBufferSize = sizeof(g_Indices[0]) * g_Indices.size(); 
+            g_IndexBuffer = Helpers::CreateBuffer(m_Device, indexBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE);
 
- 
+            vkGetBufferMemoryRequirements(m_Device, g_IndexBuffer, &memRequirements);
+            allocInfo.allocationSize = memRequirements.size; 
+                allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memRequirements.memoryTypeBits);
+            vkAllocateMemory(m_Device, &allocInfo, nullptr, &g_IndexBufferMemory);
+            vkBindBufferMemory(m_Device, g_IndexBuffer, g_IndexBufferMemory, 0);
 
-         VkBufferCreateInfo indexStagingCreateInfo = {};
-        indexStagingCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        indexStagingCreateInfo.pNext = nullptr;
-        indexStagingCreateInfo.size = sizeof(g_Indices[0]) * g_Indices.size();
-        indexStagingCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; 
-        indexStagingCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //Only one queue can use this buffer
-        indexStagingCreateInfo.flags = 0; 
- 
-        VkBuffer indexStagingBuffer = {};
-        VkDeviceMemory indexStagingMemory = {};
 
-       vkCreateBuffer(m_Device, &indexStagingCreateInfo, nullptr, &indexStagingBuffer);
+            VkBuffer indexStagingBuffer = Helpers::CreateBuffer(m_Device, indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_SHARING_MODE_EXCLUSIVE);
+            VkDeviceMemory indexStagingMemory = {};
 
             allocInfo.memoryTypeIndex = findMemoryType(memProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memRequirements.memoryTypeBits);
             vkAllocateMemory(m_Device, &allocInfo, nullptr, &indexStagingMemory);
@@ -475,8 +481,8 @@ void Renderer::InitData(){
             //Map the Vertex data into the indexStaging buffer
             {
                 void* pData = nullptr;
-                vkMapMemory(m_Device, indexStagingMemory, 0, indexStagingCreateInfo.size, 0, &pData);
-                memcpy(pData, g_Indices.data(), (size_t)bufferCreateInfo.size);
+                vkMapMemory(m_Device, indexStagingMemory, 0, indexBufferSize, 0, &pData);
+                memcpy(pData, g_Indices.data(), indexBufferSize);
                 vkUnmapMemory(m_Device, indexStagingMemory);
             }
 
@@ -485,12 +491,12 @@ void Renderer::InitData(){
             VkBufferCopy copyVertexBuffer = {};
             copyVertexBuffer.srcOffset = 0;
             copyVertexBuffer.dstOffset = 0;
-            copyVertexBuffer.size = bufferCreateInfo.size;
+            copyVertexBuffer.size = vertexBufferSize;
      
             VkBufferCopy copyIndexBuffer = {};
             copyIndexBuffer.srcOffset = 0;
             copyIndexBuffer.dstOffset = 0;
-            copyIndexBuffer.size = indexStagingCreateInfo.size;
+            copyIndexBuffer.size = vertexBufferSize;
 
 
             VkCommandBuffer cmdBuffer = Helpers::CreateCommandBuffer(m_Device, m_CommandPool);
@@ -609,13 +615,16 @@ void Renderer::EndFrame(){
 
 
 
-void Renderer::Draw(){
-    vkCmdBindPipeline(g_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+void Renderer::Draw(glm::mat4x4 wvp){
+    g_WVP = wvp; 
 
+    vkCmdBindPipeline(g_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+    
     VkDeviceSize offset[] = {0};
     vkCmdBindVertexBuffers(g_CommandBuffer, 0, 1, &g_VertexBuffer, offset);
-    //vkCmdDraw(g_CommandBuffer, static_cast<uint32_t>(g_Vertices.size()), 1, 0, 0);
     vkCmdBindIndexBuffer(g_CommandBuffer, g_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdPushConstants(g_CommandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4x4), &g_WVP);
+    //vkCmdDraw(g_CommandBuffer, static_cast<uint32_t>(g_Vertices.size()), 1, 0, 0);
     vkCmdDrawIndexed(g_CommandBuffer, g_Indices.size(), 1, 0, 0, 0);
 }
 

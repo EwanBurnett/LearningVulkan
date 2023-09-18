@@ -860,8 +860,8 @@ VkPipeline Helpers::CreateGraphicsPipeline(const VkDevice& device, const VkShade
     RS.depthClampEnable = VK_FALSE;
     RS.rasterizerDiscardEnable = VK_FALSE;
     RS.polygonMode = VK_POLYGON_MODE_FILL;
-    RS.cullMode = VK_CULL_MODE_BACK_BIT;
-    RS.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    RS.cullMode = VK_CULL_MODE_NONE;
+    RS.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     RS.depthBiasEnable = VK_FALSE;
     RS.depthBiasConstantFactor = 0.0f;
     RS.depthBiasClamp = 0.0f;
@@ -1156,4 +1156,31 @@ VkFence Helpers::CreateSyncFence(const VkDevice& device)
 void Helpers::DestroySyncFence(const VkDevice& device, VkFence& fence)
 {
     vkDestroyFence(device, fence, nullptr);
+}
+
+VkBuffer Helpers::CreateBuffer(const VkDevice& device, size_t size, VkBufferCreateFlags usageFlags, VkSharingMode sharingMode, const VkAllocationCallbacks* pAllocator){
+    Log::Message("Creating Buffer of size %d:\n\tUsage Flags: 0x%x\n\tSharing Mode: 0x%x\n", size, usageFlags, (uint32_t)sharingMode);
+
+    VkBufferCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    createInfo.pNext = nullptr;
+    createInfo.usage = usageFlags;
+    createInfo.flags = 0;
+    createInfo.size = size;
+    createInfo.sharingMode = sharingMode;
+    createInfo.queueFamilyIndexCount = 0; //TODO
+    createInfo.pQueueFamilyIndices = nullptr; //TODO
+
+    
+    VkBuffer buffer{};
+    VkResult result = VK_CALL(vkCreateBuffer(device, &createInfo, pAllocator, &buffer));
+    if(result != VK_SUCCESS){
+        throw std::runtime_error("Unable to create Buffer!\n");
+    }
+
+    return buffer;
+}
+
+void Helpers::DestroyBuffer(const VkDevice& device, VkBuffer& buffer, const VkAllocationCallbacks* pAllocator){
+    vkDestroyBuffer(device, buffer, pAllocator);
 }

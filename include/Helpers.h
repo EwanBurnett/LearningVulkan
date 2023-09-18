@@ -247,4 +247,6 @@ namespace Helpers {
     VkFence CreateSyncFence(const VkDevice& device);
     void DestroySyncFence(const VkDevice& device, VkFence& fence); 
 
+    VkBuffer CreateBuffer(const VkDevice& device, size_t size, VkBufferCreateFlags usageFlags, VkSharingMode sharingMode, const VkAllocationCallbacks* pAllocator = nullptr);
+    void DestroyBuffer(const VkDevice& device, VkBuffer& buffer, const VkAllocationCallbacks* pAllocator = nullptr);
 }

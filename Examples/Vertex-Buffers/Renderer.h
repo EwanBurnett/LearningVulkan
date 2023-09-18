@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-
+#include <glm/glm.hpp>
 class Window;
 
 class Renderer
@@ -17,7 +17,7 @@ class Renderer
 
         void BeginFrame();
         void EndFrame();
-        void Draw();
+        void Draw(glm::mat4x4 wvp);
 
     private:
         VkInstance m_Instance;
