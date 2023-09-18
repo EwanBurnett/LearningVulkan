@@ -23,29 +23,29 @@ std::vector<Vertex> g_Vertices = {
 };
 
 std::vector<uint32_t> g_Indices = {
-         //Top
+//Top
         2, 6, 7,
-        2, 3, 7,
+        2, 7, 3,
 
         //Bottom
         0, 4, 5,
-        0, 1, 5,
+        0, 5, 1,
 
         //Left
         0, 2, 6,
-        0, 4, 6,
+        0, 6, 4,
 
         //Right
-        1, 3, 7,
+        1, 7, 3,
         1, 5, 7,
 
         //Front
-        0, 2, 3,
-        0, 1, 3,
+        0, 3, 2, 
+        0, 1, 3, 
 
         //Back
         4, 6, 7,
-        4, 5, 7
+        4, 7, 5,
 };
 
 VkBuffer g_VertexBuffer = {};

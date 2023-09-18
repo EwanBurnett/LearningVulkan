@@ -861,7 +861,7 @@ VkPipeline Helpers::CreateGraphicsPipeline(const VkDevice& device, const VkShade
     RS.rasterizerDiscardEnable = VK_FALSE;
     RS.polygonMode = VK_POLYGON_MODE_FILL;
     RS.cullMode = VK_CULL_MODE_NONE;
-    RS.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    RS.frontFace = VK_FRONT_FACE_CLOCKWISE;
     RS.depthBiasEnable = VK_FALSE;
     RS.depthBiasConstantFactor = 0.0f;
     RS.depthBiasClamp = 0.0f;
