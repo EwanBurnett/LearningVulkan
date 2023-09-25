@@ -105,6 +105,7 @@ inline void Log::Fatal(const char* file, int line, const char* function, const b
     va_start(args, fmt);
     _Output(ELogColour::RED, stderr, "FATAL ERROR\nFILE: %s\n\tLINE: %d\n\tFUNCTION: %s\n", file, line, function);
     _Output(ELogColour::RED, stderr, fmt, args);
+    _Output(ELogColour::RED, stderr, "\n");
     va_end(args);
 
     if (shouldBreak) {

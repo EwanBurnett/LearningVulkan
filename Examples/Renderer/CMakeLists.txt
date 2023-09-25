@@ -31,6 +31,6 @@ add_library("imgui-Vulkan" STATIC
 
 target_include_directories("imgui-Vulkan" PUBLIC ${imgui_SOURCE_DIR})
 
-add_executable("Renderer" main.cpp)
+add_executable("Renderer" main.cpp "src/Window.cpp")
 target_link_libraries("Renderer" imgui-Vulkan ${Vulkan_LIBRARIES} glfw)
 target_include_directories("Renderer" PUBLIC ${Vulkan_INCLUDE_DIRS})
