@@ -17,6 +17,7 @@ namespace VKRenderer{
      * but must be polled by a call to Window::PollEvents() every frame. 
      */
     class Window{
+        friend class Renderer;
         public:
             Window();
             ~Window();
@@ -36,8 +37,8 @@ namespace VKRenderer{
             uint16_t m_Width;
             uint16_t m_Height; 
 
-            int  m_PosX;
-            int  m_PosY;
+            int m_PosX;
+            int m_PosY;
     };
 }
 #endif

@@ -23,6 +23,9 @@ Window::~Window(){
 
 }
 
+//Static Initialization method
+//Used to initialize global GLFW state
+//Should only be called from the Application's Main Thread.
 void Window::Init(){
     Log::Message("[Window]\tInitializing GLFW.\n");
     int result = glfwInit(); //Initialize GLFW. 
@@ -32,12 +35,17 @@ void Window::Init(){
 
 }
 
+//Static Shutdown method
+//Used to terminate GLFW 
+//Should only be called from the Application's Main Thread.
 void Window::Shutdown(){
     Log::Message("[Window]\tShutting Down GLFW.\n");
     glfwTerminate(); 
 }
 
 
+//Creates a Window with a given Title, Width and Height.
+//Must be called following Window::Init(), and preceding Window::Shutdown(). 
 void Window::Create(const std::string& Title, const uint16_t Width, const uint16_t Height){
 
     //Validate Window Creation Parameters
@@ -61,7 +69,7 @@ void Window::Create(const std::string& Title, const uint16_t Width, const uint16
             m_Height = Height;
         }
     }
-    Log::Message("[Window]\tCreating Window %s (%dx%d)\n", m_Title.c_str(), m_Width, m_Height);
+    Log::Message("[Window]\tCreating Window \"%s\" (%dx%d)\n", m_Title.c_str(), m_Width, m_Height);
     m_WindowHandle = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
 
     if(!m_WindowHandle){
@@ -75,8 +83,7 @@ void Window::BindEvent(){
 }
 
 void Window::PollEvents(){
-    glfwPollEvents();
-
+    glfwPollEvents();   //Poll any Window Events via GLFW. 
 }
 
 

@@ -3,11 +3,18 @@
 
 namespace VKRenderer{
 
+    class Window; 
     class Renderer{
+        friend class GUI;
+
         public:
-            void Init();
+            Renderer();
+            ~Renderer(); 
+
+            void Init(const Window& window);
             void Shutdown();
         private:
+            const Window* m_pWindow; 
     };
 }
 #endif
