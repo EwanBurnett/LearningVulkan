@@ -67,7 +67,7 @@ void GUI::Init(Renderer& renderer){
 }
 
 void GUI::Shutdown(){
-    Log::Message("Shutting Down GUI.\n");
+    Log::Message("[GUI]\tShutting Down GUI.\n");
 }
 
 

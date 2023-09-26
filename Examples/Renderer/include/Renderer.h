@@ -3,6 +3,7 @@
 
 namespace VKRenderer{
 
+    class Engine; 
     class Window; 
     class Renderer{
         friend class GUI;
@@ -15,6 +16,8 @@ namespace VKRenderer{
             void Shutdown();
         private:
             const Window* m_pWindow; 
+            Engine* m_Engine; 
+
     };
 }
 #endif
