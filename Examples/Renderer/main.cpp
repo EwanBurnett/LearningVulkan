@@ -19,7 +19,7 @@ int main(){
     renderer.Init(window); 
 
     VKRenderer::GUI gui;
-    gui.Init(renderer);
+    gui.Init(renderer, window);
 
     VKRenderer::Timer timer;
     timer.Reset();
@@ -31,9 +31,13 @@ int main(){
         //Poll any input events this frame.
         VKRenderer::Window::PollEvents(); 
 
+        //Update
         timer.Tick(); 
-        deltaTime = timer.Get<std::chrono::milliseconds>().count() / 1000.0;
+        deltaTime = timer.Get<std::chrono::nanoseconds>().count() / 1'000'000'000.0;
         Log::Print("DeltaTime: %f\r", deltaTime);
+
+        //Render
+        renderer.Present(); 
     }
     
     gui.Shutdown(); 

@@ -1,5 +1,4 @@
 #include "../include/GUI.h"
-#include "../include/Utilities.h"
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
@@ -14,15 +13,15 @@ GUI::~GUI(){
 
 }
 
-void GUI::Init(Renderer& renderer){
+void GUI::Init(Renderer& renderer, const Window& window){
     m_pRenderer = &renderer;
     Log::Message("[GUI]\tInitializing GUI within Renderer <0x%8d>\n", m_pRenderer);
 
-    /*
+    
     //Initialize ImGui
     {
         //Create a Descriptor Pool
-        VkDescriptorPoolSize poolSizes[] = 
+        VkDescriptorPoolSize poolSizes[] =
         {
             { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
@@ -45,25 +44,31 @@ void GUI::Init(Renderer& renderer){
         descriptorPoolInfo.poolSizeCount = std::size(poolSizes);
         descriptorPoolInfo.pPoolSizes = poolSizes;
 
+        const auto* engine = m_pRenderer->m_Engine;
         VkDescriptorPool imguiPool;
-        VkResult result = vkCreateDescriptorPool(m_pRenderer->m_Device, &descriptorPoolInfo, nullptr, &imguiPool);
+        VkResult result = vkCreateDescriptorPool(engine->m_Device, &descriptorPoolInfo, nullptr, &imguiPool);
 
         //Initialize the ImGui library
+        Log::Message("[GUI]\tCreating ImGui Context.\n");
         ImGui::CreateContext();
 
-        ImGui_ImplGlfw_InitForVulkan(m_pRenderer->m_pWindow->m_WindowHandle, true;
-                ImGui_ImplVulkan_InitInfo initInfo = {};
-                initInfo.Instance = m_pRenderer->m_Instance;
-                initInfo.PhysicalDevice = m_pRenderer->m_PhysicalDevice;
-                initInfo.Device = m_pRenderer->m_Device;
-                initInfo.QueueFamily = m_pRenderer->m_QueueFamilyIndices.Graphics.first;
-                initInfo.Queue = m_pRenderer->m_GraphicsQueues[0];
-                initInfo.PipelineCache = m_pRenderer->m_PipelineCache;
-                initInfo.DescriptorPool = m_pRenderer->m_DescriptorPool;
-                //...
-                //TODO: IMGUI Initialization with vulkan handles
-                }
-    */
+        ImGui_ImplGlfw_InitForVulkan(window.m_WindowHandle, true);
+
+        ImGui_ImplVulkan_InitInfo initInfo = {};
+        initInfo.Instance = engine->m_Instance;
+        initInfo.PhysicalDevice = engine->m_PhysicalDevice;
+        initInfo.Device = engine->m_Device;
+        initInfo.Queue = engine->m_GraphicsQueues[0].second;
+        //initInfo.DescriptorPool = engine->m_DescriptorPool;
+        initInfo.MinImageCount = 3; 
+        initInfo.ImageCount = 3; 
+        initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT; 
+    
+        //ImGui_ImplVulkan_Init(&initInfo, engine->m_RenderPass);
+
+        //ImGui_ImplVulkan_CreateFontsTexture(); 
+    }
+    
 }
 
 void GUI::Shutdown(){

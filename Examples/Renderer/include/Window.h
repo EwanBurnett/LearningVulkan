@@ -4,7 +4,11 @@
 #include <cstdint>
 #include <string>
 
-class GLFWwindow;
+#ifdef WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 namespace VKRenderer{
     /* Represents a dow on the user's current platform.
@@ -18,6 +22,8 @@ namespace VKRenderer{
      */
     class Window{
         friend class Renderer;
+        friend class Engine; 
+        friend class GUI; 
         public:
             Window();
             ~Window();
@@ -30,6 +36,8 @@ namespace VKRenderer{
             void BindEvent();
 
             bool IsOpen() const;
+
+            //GLFWwindow* Handle() const;
                         
         private:
             GLFWwindow* m_WindowHandle; 

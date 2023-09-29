@@ -1,8 +1,5 @@
 #include "../include/Window.h"
 #include "../include/Utilities.h"
-
-#include <GLFW/glfw3.h>
-
 using namespace VKRenderer;
 
 const char* DEFAULT_TITLE = "VKRenderer Window";
@@ -70,6 +67,8 @@ void Window::Create(const std::string& Title, const uint16_t Width, const uint16
         }
     }
     Log::Message("[Window]\tCreating Window \"%s\" (%dx%d)\n", m_Title.c_str(), m_Width, m_Height);
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     m_WindowHandle = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
 
     if(!m_WindowHandle){
@@ -96,3 +95,9 @@ bool Window::IsOpen() const {
         return false; 
     }
 }
+
+//GLFWwindow* Window::Handle() const
+//{
+//    return m_WindowHandle;
+//}
+
