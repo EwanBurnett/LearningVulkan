@@ -177,7 +177,7 @@ void Engine::Shutdown(){
     Helpers::DestroyInstance(m_Instance, nullptr);
 }
 
-void VKRenderer::Engine::BeginFrame()
+void VKRenderer::Engine::BeginFrame(VkClearValue clearColour)
 {
     //Wait for the current frame
     vkWaitForFences(m_Device, 1, &g_Fence, VK_TRUE, UINT64_MAX);
@@ -203,7 +203,6 @@ void VKRenderer::Engine::BeginFrame()
     renderPassBeginInfo.renderArea.offset = {0, 0};
     renderPassBeginInfo.renderArea.extent = m_SwapchainExtents; 
 
-    VkClearValue clearColour = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
     renderPassBeginInfo.clearValueCount = 1; 
     renderPassBeginInfo.pClearValues = &clearColour; 
 
@@ -213,7 +212,7 @@ void VKRenderer::Engine::BeginFrame()
 
 void VKRenderer::Engine::EndFrame()
 {
-      //End Command Buffer
+    //End Command Buffer
     vkCmdEndRenderPass(g_CommandBuffer);
     vkEndCommandBuffer(g_CommandBuffer); 
 

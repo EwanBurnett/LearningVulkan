@@ -7,6 +7,7 @@
 #include "include/GUI.h"
 #include "include/Timer.h"
 
+#include <thread>
 int main(){
 
     VKRenderer::Window::Init(); 
@@ -27,16 +28,23 @@ int main(){
     double deltaTime = 0.0;
     
     //Application Loop
-    while(window.IsOpen()){
+    while (window.IsOpen()) {
         //Poll any input events this frame.
-        VKRenderer::Window::PollEvents(); 
+        VKRenderer::Window::PollEvents();
 
         //Update
-        timer.Tick(); 
-        deltaTime = timer.Get<std::chrono::nanoseconds>().count() / 1'000'000'000.0;
-        Log::Print("DeltaTime: %f\r", deltaTime);
+        {
+            timer.Tick();
+            deltaTime = (timer.Get<std::chrono::nanoseconds>().count() / 1'000'000'000.0);    //Very High-resolution Delta Time 
+            uint64_t fps = 1.0 / deltaTime;
+            Log::Print("DeltaTime: %f\t%04u fps\r", deltaTime, fps);
+        }
 
         //Render
+        renderer.Clear();
+
+        gui.Draw(); 
+
         renderer.Present(); 
     }
     

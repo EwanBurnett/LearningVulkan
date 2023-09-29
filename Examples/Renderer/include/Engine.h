@@ -16,7 +16,7 @@ namespace VKRenderer{
             void Init(const Window& window);
             void Shutdown(); 
 
-            void BeginFrame(); 
+            void BeginFrame(VkClearValue clearColour); 
             void EndFrame(); 
         private:
       VkInstance m_Instance;

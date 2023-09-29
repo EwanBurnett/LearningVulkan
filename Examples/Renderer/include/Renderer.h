@@ -16,6 +16,7 @@ namespace VKRenderer{
             void Shutdown();
 
             void Draw(); 
+            void Clear(uint8_t r = 0x00, uint8_t g = 0x00, uint8_t b = 0x00, uint8_t a = 0xff);
             void Present(); 
         private:
             const Window* m_pWindow; 

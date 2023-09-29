@@ -5,6 +5,8 @@
 
 using namespace VKRenderer;
 
+VkCommandBuffer commandBuffer; 
+
 GUI::GUI(){
 
 }
@@ -59,14 +61,12 @@ void GUI::Init(Renderer& renderer, const Window& window){
         initInfo.PhysicalDevice = engine->m_PhysicalDevice;
         initInfo.Device = engine->m_Device;
         initInfo.Queue = engine->m_GraphicsQueues[0].second;
-        //initInfo.DescriptorPool = engine->m_DescriptorPool;
+        initInfo.DescriptorPool = imguiPool;
         initInfo.MinImageCount = 3; 
         initInfo.ImageCount = 3; 
         initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT; 
     
-        //ImGui_ImplVulkan_Init(&initInfo, engine->m_RenderPass);
-
-        //ImGui_ImplVulkan_CreateFontsTexture(); 
+        ImGui_ImplVulkan_Init(&initInfo, engine->m_RenderPass);
     }
     
 }
@@ -77,6 +77,18 @@ void GUI::Shutdown(){
 
 
 void GUI::Draw(){
-    //ImGui::ShowDemoWindow();
+
+   /* ImGui_ImplVulkan_NewFrame(); 
+    ImGui_ImplGlfw_NewFrame(); 
+
+    ImGui::NewFrame(); 
+
+    ImGui::ShowDemoWindow();
+
+
+    ImGui::Render(); 
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);*/
+
 }
+
 

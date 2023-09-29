@@ -4,14 +4,17 @@
 #include <cstdint>
 #include <string>
 
+//TODO: Move GLFW headers into .cpp file
 #ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+//struct GLFWwindow;
+
 namespace VKRenderer{
-    /* Represents a dow on the user's current platform.
+    /* Represents a window on the user's current platform.
      * A Wrapper around GLFW3, abstracting implementation details.
      * Before any functions can be called, Window::Init() MUST Be called. 
      * Additionally, Window::Shutdown() MUST be called before program termination. 
@@ -37,7 +40,7 @@ namespace VKRenderer{
 
             bool IsOpen() const;
 
-            //GLFWwindow* Handle() const;
+            //GLFWwindow* Handle() const; //TODO: Figure out why using this results in a Linker error
                         
         private:
             GLFWwindow* m_WindowHandle; 
